@@ -1,4 +1,4 @@
-## TOTP-service
+## bloom-service
 # HOW TO RUN:
     code is designed to be run in conjunction with login, could be another use outside of login but re-writing would have to be done. 
     This can be run using pip install requirements 
