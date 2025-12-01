@@ -6,38 +6,49 @@ This can be run using pip install requirements, will be updating to show how to 
 followed by python3 bloomFilter.py within the bloom directory. Note that while bloom filter is secure the 
 HTTP server hosting this is NOT.
 
-As an example you can add a POST route to check with the bloom filter when registering a new user for login.
+As an example you can add a POST route to check with the bloom filter when registering a new user for login. Bloom is well documented but you will need to add routes to reset the filter if you're deleting users since you dont want users that dont exist in login in the bit array.
 
+response data
 ```
-p.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+@app.post("/register")
+def http_register():
+    data = request.get_json(silent=True) or {}
 
-  console.log('[REGISTER] Incoming:', username, password);
+    username = (data.get("username") or "").strip()
+    password = (data.get("password") or "").strip()
 
-  if (!username || !password) {
-    return res.render('register', {
-      registerMode: true,
-      error: 'Username and password are required.'
-    });
-  }
+    print(f"[Bloom] REGISTER check username={username}")
 
-  const firstname = username;
-  const powerLevel = 1;
+    if not username or not password:
+        return jsonify(error="username and password are required"), 400
 
-  try {
-    // Ask Bloom service if username probably exists
-    try {
-      const containsRes = await fetch(
+    exists = bloom_http.contains(username)
+    print(f"[Bloom] contains({username}) -> {exists}")
+
+    if exists:
+        return jsonify(
+            ok=False,
+            message="Username probably already exists (Bloom filter)."
+        ), 409
+
+    print(f"[Bloom] Adding new username {username}")
+    bloom_http.add(username)
+
+    try:
+        os.makedirs(os.path.dirname(USERNAMES_FILE), exist_ok=True)
+        with open(USERNAMES_FILE, "a", encoding="utf-8") as f:
+            f.write(username + "\n")
+    except Exception as e:
+        print("[Bloom] Failed to append username:", e)
+
+    return jsonify(ok=True, message="Username accepted"), 200
+```
+
+
+request data
+ const containsRes = await fetch(
         `${BLOOM_BASE_URL}/bloom/contains?key=${encodeURIComponent(username)}`
       );
 
       const containsJson = await containsRes.json();
       console.log('[REGISTER] Bloom /bloom/contains response:', containsRes.status, containsJson);
-
-      if (containsRes.ok && containsJson.probablyExists) {
-        return res.render('register', {
-          registerMode: true,
-          error: 'That username probably already exists (Bloom filter).'
-        });
-      }
-```
