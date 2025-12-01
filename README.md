@@ -1,5 +1,5 @@
 ## bloom-service
-HOW TO RUN:
+HOW TO RUN
 
 code is designed to be run in conjunction with login, could be another use outside of login but re-writing would have to be done. 
 This can be run using pip install requirements, will be updating to show how to use with login
@@ -8,7 +8,8 @@ HTTP server hosting this is NOT.
 
 As an example you can add a POST route to check with the bloom filter when registering a new user for login. Bloom is well documented but you will need to add routes to reset the filter if you're deleting users since you dont want users that dont exist in login in the bit array.
 
-#response data
+response data
+
 ```
 @app.post("/register")
 def http_register():
@@ -45,10 +46,13 @@ def http_register():
 ```
 
 
-#request data
+request data
+
+```
  const containsRes = await fetch(
         `${BLOOM_BASE_URL}/bloom/contains?key=${encodeURIComponent(username)}`
       );
 
       const containsJson = await containsRes.json();
       console.log('[REGISTER] Bloom /bloom/contains response:', containsRes.status, containsJson);
+```
